@@ -16,7 +16,7 @@ class MusicBrainzService
      * Search for albums (Release Groups) based on title and year.
      * Fulfils RF-04 (Motor de búsqueda) and RF-06 (Filtrado por cronología)[cite: 57, 59].
      */
-    public function searchAlbums($title, $year = null)
+    /*public function searchAlbums($title, $year = null)
     {
         // Construct the Lucene query for precise filtering [cite: 10]
         $query = "releasegroup:\"{$title}\"";
@@ -29,7 +29,21 @@ class MusicBrainzService
             'query' => $query,
             'fmt' => 'json',
         ]);
-    }
+    }*/
+        public function searchAlbums($term, $limit = 10, $offset = 0)
+        {
+            $response = $this->makeRequest('release-group', [
+                'query' => 'releasegroup:' . $term,
+                'limit' => $limit,
+                'offset' => $offset,
+                'fmt' => 'json'
+            ]);
+
+            return [
+                'results' => $response['release-groups'] ?? [],
+                'total' => $response['count'] ?? 0 // MusicBrainz returns total matches here
+            ];
+        }
 
     /**
      * Fetch full album details, including the tracklist (songs).
@@ -37,11 +51,35 @@ class MusicBrainzService
      */
     public function getAlbumDetails($mbid)
     {
-        return $this->makeRequest("release-group/{$mbid}", [
-            // 'inc' stands for 'include'. We want releases and their recordings[cite: 39].
-            'inc' => 'releases+recordings',
+       // Step 1: Fetch Release Group (The logs show this works perfectly!)
+        $data = $this->makeRequest("release-group/{$mbid}", [
+            'inc' => 'releases+artist-credits+genres',
             'fmt' => 'json',
         ]);
+
+        // If Step 1 fails, stop here.
+        if (!$data) {
+            return null;
+        }
+
+        // Step 2: Try to get tracks from the first release
+        if (!empty($data['releases'])) {
+            // Wait to avoid 503
+            usleep(1100000);
+
+            $releaseId = $data['releases'][0]['id'];
+            $releaseData = $this->makeRequest("release/{$releaseId}", [
+                'inc' => 'recordings',
+                'fmt' => 'json',
+            ]);
+
+            // Only attach tracks if the second call worked
+            if ($releaseData && isset($releaseData['media'][0]['tracks'])) {
+                $data['tracks_data'] = $releaseData['media'][0]['tracks'];
+            }
+        }
+
+        return $data;
     }
 
     /**
@@ -49,9 +87,7 @@ class MusicBrainzService
      */
     protected function makeRequest($endpoint, $params)
     {
-        $response = Http::withHeaders([
-            'User-Agent' => $this->userAgent
-        ])
+        $response = Http::withHeaders(['User-Agent' => $this->userAgent])
         ->withoutVerifying()
         ->get("{$this->baseUrl}/{$endpoint}", $params);
 
@@ -59,6 +95,32 @@ class MusicBrainzService
             return $response->json();
         }
 
+        // ONLY log if it's NOT a 200/Success
+        \Log::error("MB API Actual Failure: " . $response->status());
         return null;
     }
+    public function getSongDetails($mbid)
+    {
+        return $this->makeRequest("recording/{$mbid}", [
+            'inc' => 'releases+artist-credits',
+            'fmt' => 'json'
+        ]);
+    }
+    public function getGenres($limit = 100, $offset = 0)
+    {
+        return $this->makeRequest('genre', [
+            'limit' => $limit,
+            'offset' => $offset,
+            'fmt' => 'json'
+        ]);
+    }
+    public function getAlbumsByDecade($startYear, $endYear, $limit = 25)
+{
+    return $this->makeRequest('release-group', [
+        'query' => "primarytype:album AND date:[{$startYear}-01-01 TO {$endYear}-12-31]",
+        'limit' => $limit,
+        'fmt' => 'json'
+    ]);
+}
+
 }
