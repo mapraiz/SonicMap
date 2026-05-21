@@ -15,7 +15,6 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
 
-            // Polymorphic columns: reviewable_id and reviewable_type
             $table->numericMorphs('reviewable');
             $table->integer('rating')->nullable();// 1-5 stars [cite: 20, 63]
             $table->text('review_text')->nullable(); // [cite: 22, 64]
@@ -25,19 +24,17 @@ return new class extends Migration
         Schema::create('wishlists', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->morphs('wishlistable'); // Can add Album or Song [cite: 67]
+            $table->morphs('wishlistable');
             $table->timestamps();
         });
         Schema::create('libraries', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
 
-            // Polymorphic: This links to an Album, Song, or even Artist
             $table->morphs('librariable');
 
             $table->timestamps();
 
-            // Ensure a user can't save the same album twice
             $table->unique(['user_id', 'librariable_id', 'librariable_type'], 'user_library_unique');
         });
     }

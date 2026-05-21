@@ -10,7 +10,6 @@ class SongController extends Controller
 {
     public function show($id)
     {
-        // Add ->withoutVerifying() right before your headers/requests
         $response = Http::withoutVerifying()
             ->withHeaders([
                 'User-Agent' => 'SonicMap/1.0.0 ( your-email@example.com )'
@@ -25,7 +24,6 @@ class SongController extends Controller
 
         $song = $response->json();
 
-        // Calculate ratings exactly like before
         $localSong = Song::where('mbid', $id)->first();
         $averageRating = 0;
         if ($localSong) {

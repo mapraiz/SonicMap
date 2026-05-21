@@ -12,24 +12,7 @@ class MusicBrainzService
     protected $baseUrl = 'https://musicbrainz.org/ws/2';
     protected $userAgent = 'SonicMap/1.0 ( mapraizclase@gmail.com)';
 
-    /**
-     * Search for albums (Release Groups) based on title and year.
-     * Fulfils RF-04 (Motor de búsqueda) and RF-06 (Filtrado por cronología)[cite: 57, 59].
-     */
-    /*public function searchAlbums($title, $year = null)
-    {
-        // Construct the Lucene query for precise filtering [cite: 10]
-        $query = "releasegroup:\"{$title}\"";
 
-        if ($year) {
-            $query .= " AND date:{$year}";
-        }
-
-        return $this->makeRequest('release-group', [
-            'query' => $query,
-            'fmt' => 'json',
-        ]);
-    }*/
         public function searchAlbums($term, $limit = 10, $offset = 0)
         {
             $response = $this->makeRequest('release-group', [
@@ -41,30 +24,23 @@ class MusicBrainzService
 
             return [
                 'results' => $response['release-groups'] ?? [],
-                'total' => $response['count'] ?? 0 // MusicBrainz returns total matches here
+                'total' => $response['count'] ?? 0
             ];
         }
 
-    /**
-     * Fetch full album details, including the tracklist (songs).
-     * Necessary for RF-08 (Registro de escucha) at the song level[cite: 62].
-     */
+
     public function getAlbumDetails($mbid)
     {
-       // Step 1: Fetch Release Group (The logs show this works perfectly!)
         $data = $this->makeRequest("release-group/{$mbid}", [
             'inc' => 'releases+artist-credits+genres',
             'fmt' => 'json',
         ]);
 
-        // If Step 1 fails, stop here.
         if (!$data) {
             return null;
         }
 
-        // Step 2: Try to get tracks from the first release
         if (!empty($data['releases'])) {
-            // Wait to avoid 503
             usleep(1100000);
 
             $releaseId = $data['releases'][0]['id'];
@@ -73,7 +49,6 @@ class MusicBrainzService
                 'fmt' => 'json',
             ]);
 
-            // Only attach tracks if the second call worked
             if ($releaseData && isset($releaseData['media'][0]['tracks'])) {
                 $data['tracks_data'] = $releaseData['media'][0]['tracks'];
             }
@@ -95,7 +70,6 @@ class MusicBrainzService
             return $response->json();
         }
 
-        // ONLY log if it's NOT a 200/Success
         \Log::error("MB API Actual Failure: " . $response->status());
         return null;
     }
@@ -127,7 +101,6 @@ class MusicBrainzService
     }
     public function getTopTags($limit = 100)
     {
-        // The tag endpoint allows us to browse the most frequently used terms
         return $this->makeRequest('tag', [
             'limit' => $limit,
             'fmt' => 'json'
@@ -135,7 +108,6 @@ class MusicBrainzService
     }
     public function getAlbumsByTag($tag, $limit = 24) :array
     {
-        // This safely accesses the protected makeRequest method internally
         return $this->makeRequest('release-group', [
             'query' => 'tag:"'.$tag.'" AND primarytype:album',
             'limit' => $limit,

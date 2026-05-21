@@ -3,7 +3,6 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
 
-                {{-- LEFT COLUMN: COVER ART & ACTIONS --}}
                 <div class="md:col-span-1">
                     <div class="bg-gray-800 p-6 rounded-lg border border-gray-700 shadow-xl h-fit">
 
@@ -44,7 +43,6 @@
                                 </div>
                             </div>
 
-                            {{-- THE CRITICAL FIX: Declared rating and hoverRating here in x-data --}}
                             <div x-data="{ showReviewModal: false, isRegistered: false, rating: 0, hoverRating: 0 }">
                                 <form action="{{ route('albums.store') }}" method="POST">
                                     @csrf
@@ -89,7 +87,6 @@
                                             <input type="hidden" name="artist_name" value="{{ $album['artist-credit'][0]['name'] ?? 'Artista Desconocido' }}">
                                             <input type="hidden" name="reviewable_type" value="album">
 
-                                            {{-- Syncs selected Alpine dynamic index property directly with Laravel form submission payload data --}}
                                             <input type="hidden" name="rating" :value="rating">
 
                                             <div>
@@ -162,9 +159,8 @@
                         </div>
 
                     </div>
-                </div> {{-- END OF LEFT COLUMN --}}
+                </div>
 
-                {{-- RIGHT COLUMN: TRACKLIST & COMMUNITY --}}
                 <div class="md:col-span-2 space-y-6">
                     <div class="bg-gray-800 p-6 rounded-lg border border-gray-700 shadow-lg">
                         <h2 class="text-xl font-bold mb-4 border-b border-gray-700 pb-2">Lista de Canciones</h2>
@@ -203,9 +199,9 @@
                             <p class="text-gray-500 text-center py-6 italic">Sé el primero en reseñar este álbum.</p>
                         @endforelse
                     </div>
-                </div> {{-- END OF RIGHT COLUMN --}}
+                </div>
 
-            </div> {{-- END OF GRID --}}
+            </div>
         </div>
     </div>
 </x-app-layout>

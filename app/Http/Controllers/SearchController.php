@@ -17,25 +17,23 @@ class SearchController extends Controller
     public function index(Request $request){
         $searchTerm = $request->input('query');
         $perPage = 10;
-        $page = $request->input('page', 1); // Default to page 1
+        $page = $request->input('page', 1);
         $offset = ($page - 1) * $perPage;
 
         $results = [];
         $paginator = null;
 
         if ($searchTerm) {
-            // Fetch from API with pagination parameters
             $apiData = $this->mbService->searchAlbums($searchTerm, $perPage, $offset);
 
-            // Create the custom Laravel Paginator
             $paginator = new LengthAwarePaginator(
                 $apiData['results'],
-                $apiData['total'],   // Total items across all pages
+                $apiData['total'],
                 $perPage,
                 $page,
                 [
                     'path' => $request->url(),
-                    'query' => $request->query() // Keeps the ?query=loveless in pagination links
+                    'query' => $request->query()
                 ]
             );
         }
@@ -56,7 +54,6 @@ class SearchController extends Controller
         $localAlbum = Album::where('mbid', $mbid)->with('reviews.user')->first();
         $averageRating = $localAlbum ? $localAlbum->reviews->avg('rating') : null;
 
-        // THE FIX: Check if the logged-in user is attached to this album's library pivot table
         $isLogged = false;
         if (auth()->check() && $localAlbum) {
             $isLogged = $localAlbum->users()->where('user_id', auth()->id())->exists();

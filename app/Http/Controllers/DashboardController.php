@@ -11,19 +11,16 @@ class DashboardController extends Controller
     {
         $userId = Auth::id();
 
-        // 1. Calculate Aggregate Statistics
         $totalAlbums = Review::where('user_id', $userId)->where('reviewable_type', 'album')->count();
         $totalSongs  = Review::where('user_id', $userId)->where('reviewable_type', 'song')->count();
         $averageScore = Review::where('user_id', $userId)->avg('rating') ?? 0;
 
-        // 2. Fetch the 5 most recent updates
         $recentReviews = Review::with('reviewable') // Eager-load polymorphic relation models
             ->where('user_id', $userId)
             ->latest()
             ->take(5)
             ->get();
 
-        // 3. Fetch the user's ultimate favorites
         $topGems = Review::with('reviewable')
             ->where('user_id', $userId)
             ->where('rating', '>=', 4.5)

@@ -4,7 +4,6 @@
 
 
 
-            {{-- 1. STATS GRID --}}
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 {{-- CARD: ALBUMS --}}
                 <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow flex items-center gap-4">
@@ -39,7 +38,6 @@
             {{-- MAIN GRID SECTIONS --}}
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-                {{-- COLUMN 1 & 2: RECENT ACTIVITY TIMELINE --}}
                 <div class="lg:col-span-2 space-y-4">
                     <h2 class="text-lg font-black uppercase tracking-wider text-gray-400 flex items-center gap-2">
                         🕒 Actividad Reciente
@@ -54,22 +52,18 @@
                             @foreach($recentReviews as $review)
                                 <div class="p-4 sm:p-5 flex items-start justify-between gap-4 hover:bg-gray-700/30 transition">
                                     <div class="flex items-start gap-3.5">
-                                        {{-- ICON RECOGNIZER BADGE --}}
                                         <div class="w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm shrink-0 border
                                             {{ $review->reviewable_type === 'album' ? 'bg-indigo-950/50 text-indigo-400 border-indigo-800/40' : 'bg-emerald-950/50 text-emerald-400 border-emerald-800/40' }}">
                                             {{ $review->reviewable_type === 'album' ? 'DISCO' : 'TEMA' }}
                                         </div>
 
                                         <div>
-                                            {{-- DYNAMIC ROUTE ANCHOR --}}
                                             @php
                                                 $routeName = $review->reviewable_type === 'album' ? 'albums.show' : 'songs.show';
 
-                                                // Safely check if the relation exists, otherwise fallback to an empty string or null
                                                 $itemId = $review->reviewable?->mbid;
                                             @endphp
 
-                                            {{-- If we have a valid MusicBrainz ID, link to it. Otherwise, render a dead link safely --}}
                                             @if($itemId)
                                                 <a href="{{ route($routeName, ['mbid' => $itemId]) }}" class="font-bold text-white hover:text-indigo-400 block transition leading-snug">
                                                     {{ $review->reviewable?->title ?? 'Título Desconocido' }}
@@ -82,7 +76,6 @@
                                         </div>
                                     </div>
 
-                                    {{-- STATIC READ-ONLY VECTOR STARS OVERLAY --}}
                                     <div class="flex items-center gap-0.5 bg-gray-900 px-2 py-1 rounded border border-gray-700/50 shrink-0">
                                         @foreach(range(1, 5) as $star)
                                             <div class="relative w-3.5 h-3.5 flex items-center justify-center">

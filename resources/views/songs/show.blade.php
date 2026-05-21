@@ -22,13 +22,12 @@
                     </div>
                 </div>
 
-                {{-- 1. DATABASE LOOKUP: Grab the logged-in user's existing score --}}
+
                 @php
                     $userReview = $localSong ? $localSong->reviews()->where('user_id', auth()->id())->first() : null;
                     $userRating = $userReview ? $userReview->rating : 0;
                 @endphp
 
-                {{-- 2. ALPINE INITIALIZATION: Pass the user's score right into the initial state --}}
                 <div x-data="{
                     hoverRating: 0,
                     rating: {{ $userRating }},
@@ -81,7 +80,6 @@
                         </div>
                     </form>
 
-                    {{-- Dynamic Score helper text badge --}}
                     <p class="mt-4 text-sm font-bold text-indigo-400 font-mono bg-gray-950 px-2.5 py-1 rounded border border-gray-800"
                        x-text="getDisplayRating() > 0 ? getDisplayRating().toFixed(1) + ' / 5' : 'Selecciona una nota'"></p>
                 </div>

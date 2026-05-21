@@ -2,7 +2,6 @@
     <div class="py-12 bg-gray-950 min-h-screen text-white">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8">
 
-            {{-- USER SUMMARY ROW CARD --}}
             <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">
                 <div class="flex items-center gap-4 text-center md:text-left flex-col md:flex-row w-full md:w-auto">
                     <div class="w-20 h-20 bg-indigo-600 rounded-full flex items-center justify-center text-3xl font-black uppercase tracking-wider shadow-md text-indigo-100 flex-shrink-0">
@@ -39,10 +38,8 @@
                 </div>
             </div>
 
-            {{-- MAIN LAYOUT SPLIT GRID --}}
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-                {{-- LEFT SPLIT: USER COLLECTION LIBRARY --}}
                 <div class="lg:col-span-2 space-y-4">
                     <div class="flex items-center justify-between border-b border-gray-900 pb-3">
                         <h2 class="text-xl font-black uppercase tracking-wider text-gray-200">Tu Biblioteca</h2>
@@ -78,7 +75,6 @@
                     @endif
                 </div>
 
-                {{-- RIGHT SPLIT: POLYMORPHIC RATINGS TIMELINE FEED --}}
                 <div class="space-y-4">
                     <div class="border-b border-gray-900 pb-3">
                         <h2 class="text-xl font-black uppercase tracking-wider text-gray-200">Calificaciones Recientes</h2>
@@ -108,12 +104,10 @@
                                             @endforeach
                                         </div>
 
-                                        {{-- THE FIXED LINE: Accessing the relational nested object name safely --}}
                                         <p class="text-[10px] text-indigo-400 truncate">
                                             {{ $rating->reviewable->artist->name ?? 'Artista Desconocido' }}
                                         </p>
 
-                                        {{-- THE SECOND FIXED LINE: Using review_text column name mapping --}}
                                         @if(!empty($rating->review_text))
                                             <p class="text-gray-400 text-xs italic mt-1 line-clamp-2 bg-gray-950/50 p-2 rounded border border-gray-800/40">
                                                 "{{ $rating->review_text }}"

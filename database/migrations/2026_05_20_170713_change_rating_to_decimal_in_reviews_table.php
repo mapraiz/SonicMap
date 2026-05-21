@@ -12,7 +12,6 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('reviews', function (Blueprint $table) {
-            // Change integer to decimal with a total of 2 digits, and 1 decimal place (e.g., 4.5)
             $table->decimal('rating', 2, 1)->nullable()->change();
         });
     }

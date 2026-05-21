@@ -21,7 +21,7 @@ class Song extends Model
 
     public function reviews(): MorphMany
     {
-        // 'reviewable' must match the morph prefix name used in your migrations
+
         return $this->morphMany(Review::class, 'reviewable');
     }
 

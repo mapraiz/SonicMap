@@ -9,9 +9,7 @@ class Review extends Model
 {
     protected $fillable = ['user_id', 'reviewable_id', 'reviewable_type', 'rating', 'review_text'];
 
-    /**
-     * Get the owning reviewable model (Album or Song).
-     */
+
     public function reviewable(): MorphTo
     {
         return $this->morphTo();

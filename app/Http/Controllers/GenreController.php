@@ -36,7 +36,6 @@ class GenreController extends Controller
         $response = $this->mbService->getAlbumsByTag($tag, 24);
         $albums = $response['release-groups'] ?? [];
 
-        // Clean up the title display for the user (e.g., "synthpop" -> "Synthpop")
         $genreName = ucfirst(str_replace('-', ' ', $slug));
 
         return view('genres.show', [

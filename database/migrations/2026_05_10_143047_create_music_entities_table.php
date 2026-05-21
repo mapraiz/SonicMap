@@ -22,7 +22,7 @@ return new class extends Migration
             $table->uuid('mbid')->unique();
             $table->foreignId('artist_id')->constrained()->onDelete('cascade');
             $table->string('title');
-            $table->integer('release_year')->nullable(); // For filtering [cite: 59]
+            $table->integer('release_year')->nullable();
             $table->timestamps();
         });
         Schema::create('songs', function (Blueprint $table) {
