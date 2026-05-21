@@ -57,4 +57,31 @@ class ProfileController extends Controller
 
         return Redirect::to('/');
     }
+    public function show()
+    {
+        $user = Auth::user();
+
+        // 1. Get the albums saved in their library, eager loading their artists
+        $savedAlbums = $user->savedAlbums()
+            ->with('artist') // Prevents N+1 queries when loading artist names
+            ->take(12)
+            ->get();
+
+        // 2. Get the recent ratings, eager loading the polymorphic 'reviewable' relation and its artist
+        // THE CRITICAL FIX: Loads the morphed model and nested artist model cleanly
+        $recentRatings = $user->ratings()
+            ->with('reviewable.artist')
+            ->latest() // Orders by newest first
+            ->take(10)
+            ->get();
+
+        // 3. Calculate stats for the profile header
+        $stats = [
+            'total_saved' => $user->savedAlbums()->count(),
+            'total_ratings' => $user->ratings()->count(),
+            'average_rating' => round($user->ratings()->avg('rating') ?? 0, 1)
+        ];
+
+        return view('profile.show', compact('user', 'savedAlbums', 'recentRatings', 'stats'));
+    }
 }

@@ -3,6 +3,7 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
 
+                {{-- LEFT COLUMN: COVER ART & ACTIONS --}}
                 <div class="md:col-span-1">
                     <div class="bg-gray-800 p-6 rounded-lg border border-gray-700 shadow-xl h-fit">
 
@@ -43,16 +44,20 @@
                                 </div>
                             </div>
 
-                            <div x-data="{ showReviewModal: false, isRegistered: false }">
-                                <form action="{{ route('reviews.store') }}" method="POST">
+                            {{-- THE CRITICAL FIX: Declared rating and hoverRating here in x-data --}}
+                            <div x-data="{ showReviewModal: false, isRegistered: false, rating: 0, hoverRating: 0 }">
+                                <form action="{{ route('albums.store') }}" method="POST">
                                     @csrf
                                     <input type="hidden" name="mbid" value="{{ $album['id'] }}">
-                                    <input type="hidden" name="item_type" value="album">
-                                    <input type="hidden" name="rating" value="0"> {{-- 0 means 'just logged, no rating yet' --}}
+                                    <input type="hidden" name="title" value="{{ $album['title'] ?? 'Título no disponible' }}">
+                                    <input type="hidden" name="release_date" value="{{ $album['first-release-date'] ?? '' }}">
 
+                                    <input type="hidden" name="artist_mbid" value="{{ $album['artist-credit'][0]['artist']['id'] ?? '' }}">
+                                    <input type="hidden" name="artist_name" value="{{ $album['artist-credit'][0]['name'] ?? 'Artista Desconocido' }}">
 
                                     <button type="submit"
-                                            class="w-full mt-8 {{ $isLogged ? 'bg-green-700' : 'bg-indigo-600' }} flex items-center justify-center gap-2 hover:bg-indigo-500 text-white py-3 rounded-lg font-bold transition shadow-lg">
+                                            {{ $isLogged ? 'disabled' : '' }}
+                                            class="w-full mt-8 {{ $isLogged ? 'bg-green-700 cursor-not-allowed opacity-85' : 'bg-indigo-600 hover:bg-indigo-500' }} flex items-center justify-center gap-2 text-white py-3 rounded-lg font-bold transition shadow-lg">
                                         {{ $isLogged ? '✓ En tu Logbook' : '+ Registrar en Logbook' }}
                                     </button>
                                 </form>
@@ -62,13 +67,104 @@
                                     Escribir Reseña
                                 </button>
 
-                                <x-modal name="review-modal" ...>
-                                    </x-modal>
+                                <div x-show="showReviewModal"
+                                     x-transition.opacity
+                                     class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
+                                     style="display: none;">
+
+                                    <div @click.away="showReviewModal = false"
+                                         x-transition.scale
+                                         class="bg-gray-900 border border-gray-800 rounded-2xl max-w-md w-full p-6 shadow-2xl relative text-left">
+
+                                        <button @click="showReviewModal = false" type="button" class="absolute top-4 right-4 text-gray-500 hover:text-gray-300 text-xl font-bold">&times;</button>
+
+                                        <h3 class="text-xl font-black text-gray-100 uppercase tracking-tight mb-1">Escribir Reseña</h3>
+                                        <p class="text-gray-400 text-xs mb-6">{{ $album['title'] }} — {{ $album['artist-credit'][0]['name'] ?? '' }}</p>
+
+                                        <form action="{{ route('reviews.store') }}" method="POST" class="space-y-5">
+                                            @csrf
+                                            <input type="hidden" name="mbid" value="{{ $album['id'] }}">
+                                            <input type="hidden" name="title" value="{{ $album['title'] ?? 'Título no disponible' }}">
+                                            <input type="hidden" name="artist_mbid" value="{{ $album['artist-credit'][0]['artist']['id'] ?? '' }}">
+                                            <input type="hidden" name="artist_name" value="{{ $album['artist-credit'][0]['name'] ?? 'Artista Desconocido' }}">
+                                            <input type="hidden" name="reviewable_type" value="album">
+
+                                            {{-- Syncs selected Alpine dynamic index property directly with Laravel form submission payload data --}}
+                                            <input type="hidden" name="rating" :value="rating">
+
+                                            <div>
+                                                <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Tu Calificación</label>
+                                                <div class="flex items-center gap-2">
+
+                                                    <div class="flex items-center gap-1 relative select-none">
+                                                        <template x-for="i in [1, 2, 3, 4, 5]">
+                                                            <div class="relative w-7 h-7 flex items-center justify-center">
+
+                                                                <svg class="absolute w-full h-full text-gray-700 fill-current" viewBox="0 0 24 24">
+                                                                    <path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.132 9.21l8.2-1.192z"/>
+                                                                </svg>
+
+                                                                <div class="absolute top-0 left-0 h-full overflow-hidden pointer-events-none transition-all duration-75"
+                                                                    :style="
+                                                                        let activeRating = hoverRating || rating;
+                                                                        if (activeRating >= i) return 'width: 100%';
+                                                                        if (activeRating === i - 0.5) return 'width: 50%';
+                                                                        return 'width: 0%';
+                                                                    ">
+                                                                    <svg class="w-7 h-7 text-yellow-400 fill-current" viewBox="0 0 24 24">
+                                                                        <path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.132 9.21l8.2-1.192z"/>
+                                                                    </svg>
+                                                                </div>
+
+                                                                <div class="absolute top-0 left-0 w-1/2 h-full cursor-pointer z-10"
+                                                                    @mouseenter="hoverRating = i - 0.5"
+                                                                    @mouseleave="hoverRating = 0"
+                                                                    @click="rating = i - 0.5"></div>
+
+                                                                <div class="absolute top-0 right-0 w-1/2 h-full cursor-pointer z-10"
+                                                                    @mouseenter="hoverRating = i"
+                                                                    @mouseleave="hoverRating = 0"
+                                                                    @click="rating = i"></div>
+                                                            </div>
+                                                        </template>
+                                                    </div>
+
+                                                    <span class="text-sm font-bold text-indigo-400 font-mono ml-1 bg-gray-950 px-2 py-1 rounded border border-gray-800"
+                                                        x-text="rating > 0 ? rating.toFixed(1) + '/5' : 'Sin nota'">
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Comentario Reseña (Opcional)</label>
+                                                <textarea name="review_text"
+                                                          id="review_text"
+                                                          rows="4"
+                                                          placeholder="¿Qué te pareció este lanzamiento? Cuenta tus impresiones..."
+                                                          class="w-full bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-sm text-gray-200 focus:outline-none focus:border-indigo-500 placeholder-gray-600 transition resize-none"></textarea>
+                                            </div>
+
+                                            <div class="flex items-center justify-end gap-3 pt-2">
+                                                <button type="button"
+                                                        @click="showReviewModal = false"
+                                                        class="px-4 py-2 text-sm font-bold text-gray-400 hover:text-gray-200 transition">
+                                                    Cancelar
+                                                </button>
+                                                <button type="submit"
+                                                        class="bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold px-5 py-2.5 rounded-xl transition shadow-md">
+                                                    Guardar Reseña
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </div>{{-- END OF LEFT COLUMN --}}
 
+                    </div>
+                </div> {{-- END OF LEFT COLUMN --}}
+
+                {{-- RIGHT COLUMN: TRACKLIST & COMMUNITY --}}
                 <div class="md:col-span-2 space-y-6">
                     <div class="bg-gray-800 p-6 rounded-lg border border-gray-700 shadow-lg">
                         <h2 class="text-xl font-bold mb-4 border-b border-gray-700 pb-2">Lista de Canciones</h2>
@@ -83,7 +179,7 @@
                                     <li class="py-3 flex justify-between items-center">
                                         <span class="text-gray-200">
                                             <span class="text-gray-500 mr-2">{{ $track['number'] ?? '?' }}.</span>
-                                            <a href="{{ route('song.show', $track['recording']['id']) }}" class="hover:text-indigo-400 transition">
+                                            <a href="{{ route('songs.show', $track['recording']['id']) }}" class="hover:text-indigo-400 transition">
                                                 {{ $track['title'] }}
                                             </a>
                                         </span>

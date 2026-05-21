@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Song extends Model
 {
@@ -18,8 +19,9 @@ class Song extends Model
         return $this->belongsTo(Album::class);
     }
 
-    public function reviews()
+    public function reviews(): MorphMany
     {
+        // 'reviewable' must match the morph prefix name used in your migrations
         return $this->morphMany(Review::class, 'reviewable');
     }
 

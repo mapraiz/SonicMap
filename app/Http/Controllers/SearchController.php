@@ -48,18 +48,25 @@ class SearchController extends Controller
     }
     public function show($mbid){
         $mbData = $this->mbService->getAlbumDetails($mbid);
-        $localAlbum =Album::where('mbid', $mbid)->with('reviews.user')->first();
-        $averageRating = $localAlbum ? $localAlbum->reviews->avg('rating') : null;
-        $isLogged = $localAlbum ? $localAlbum->reviews()->where('user_id', auth()->id())->exists() : false;
 
-       if (!$mbData) {
-        return "The API returned null. Check your logs or wait a second and refresh.";
-    }
+        if (!$mbData) {
+            return "The API returned null. Check your logs or wait a second and refresh.";
+        }
+
+        $localAlbum = Album::where('mbid', $mbid)->with('reviews.user')->first();
+        $averageRating = $localAlbum ? $localAlbum->reviews->avg('rating') : null;
+
+        // THE FIX: Check if the logged-in user is attached to this album's library pivot table
+        $isLogged = false;
+        if (auth()->check() && $localAlbum) {
+            $isLogged = $localAlbum->users()->where('user_id', auth()->id())->exists();
+        }
+
         return view('albums.show', [
             'album' => $mbData,
             'localAlbum' => $localAlbum,
             'averageRating' => $averageRating,
-            'isLogged' =>$isLogged,
+            'isLogged' => $isLogged,
         ]);
     }
     public function showSong($mbid)

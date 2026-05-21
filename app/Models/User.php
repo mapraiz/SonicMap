@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 #[Fillable(['name', 'email', 'password'])]
 #[Hidden(['password', 'remember_token'])]
@@ -37,5 +38,15 @@ class User extends Authenticatable
     public function library()
     {
         return $this->hasMany(Library::class);
+    }
+    public function savedAlbums(): BelongsToMany
+    {
+        // Explicitly references your 'album_user' pivot table connecting users to albums
+        return $this->belongsToMany(Album::class, 'album_user', 'user_id', 'album_id')
+                    ->withTimestamps();
+    }
+    public function ratings()
+    {
+        return $this->hasMany(Review::class, 'user_id');
     }
 }

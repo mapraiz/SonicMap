@@ -16,8 +16,8 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
 
             // Polymorphic columns: reviewable_id and reviewable_type
-            $table->morphs('reviewable');
-            $table->integer('rating'); // 1-5 stars [cite: 20, 63]
+            $table->numericMorphs('reviewable');
+            $table->integer('rating')->nullable();// 1-5 stars [cite: 20, 63]
             $table->text('review_text')->nullable(); // [cite: 22, 64]
             $table->date('listened_at')->nullable(); // Manual input [cite: 21, 65]
             $table->timestamps();

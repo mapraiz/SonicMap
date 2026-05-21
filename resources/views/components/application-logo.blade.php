@@ -13,4 +13,4 @@
 
     <circle cx="50" cy="45" r="3" fill="currentColor" />
 </svg>-->
-<img src="{{ asset('images/logoblack.png') }}" {{ $attributes->merge(['class' => 'block h-9 w-auto']) }} alt="SonicMap Logo">
+<img src="{{ asset('images/logo.png') }}" {{ $attributes->merge(['class' => 'block h-9 w-auto']) }} alt="SonicMap Logo">

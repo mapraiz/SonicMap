@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Album extends Model
 {
-    protected $fillable = ['mbid', 'artist_id', 'title', 'release_year', 'genre'];
+    protected $fillable = ['mbid', 'artist_id', 'title', 'release_year'];
 
     public function artist()
     {
@@ -25,5 +25,9 @@ class Album extends Model
     public function libraryEntries()
     {
         return $this->morphMany(Library::class, 'librariable');
+    }
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'album_user', 'album_id', 'user_id');
     }
 }

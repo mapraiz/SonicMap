@@ -114,13 +114,33 @@ class MusicBrainzService
             'fmt' => 'json'
         ]);
     }
-    public function getAlbumsByDecade($startYear, $endYear, $limit = 25)
-{
-    return $this->makeRequest('release-group', [
-        'query' => "primarytype:album AND date:[{$startYear}-01-01 TO {$endYear}-12-31]",
-        'limit' => $limit,
-        'fmt' => 'json'
-    ]);
-}
+    public function getAlbumsByDecade($startYear, $endYear, $limit = 25, $offset=0)
+    {
+        $queryString = "primarytype:album AND firstreleasedate:[{$startYear} TO {$endYear}]";
+
+        return $this->makeRequest('release-group', [
+            'query' => $queryString,
+            'limit' => $limit,
+            'offset' => $offset,
+            'fmt' => 'json'
+        ]);
+    }
+    public function getTopTags($limit = 100)
+    {
+        // The tag endpoint allows us to browse the most frequently used terms
+        return $this->makeRequest('tag', [
+            'limit' => $limit,
+            'fmt' => 'json'
+        ]);
+    }
+    public function getAlbumsByTag($tag, $limit = 24) :array
+    {
+        // This safely accesses the protected makeRequest method internally
+        return $this->makeRequest('release-group', [
+            'query' => 'tag:"'.$tag.'" AND primarytype:album',
+            'limit' => $limit,
+            'fmt' => 'json'
+        ]);
+    }
 
 }

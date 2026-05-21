@@ -10,14 +10,20 @@
 
             <h1 class="text-4xl font-black uppercase mb-8">Cápsula de Tiempo: Los {{ $decade }}s</h1>
 
-            @if(count($albums) > 0)
+            @if($albums->count() > 0)
                 <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 space-y-4">
+
                     @foreach($albums as $index => $album)
+                        {{-- Calculate true absolute rank placement numbers across multiple pages --}}
+                        @php
+                            $rankNumber = (($albums->currentPage() - 1) * $albums->perPage()) + ($index + 1);
+                        @endphp
+
                         <div class="p-4 bg-gray-950 rounded-lg border border-gray-800 flex items-center justify-between gap-4 hover:border-gray-700 transition">
 
                             <div class="flex items-center gap-4 min-w-0">
-                                <span class="text-xl font-black text-gray-600 font-mono w-6 text-center">
-                                    #{{ $index + 1 }}
+                                <span class="text-lg font-black text-gray-600 font-mono w-8 text-center">
+                                    #{{ $rankNumber }}
                                 </span>
 
                                 <div class="w-12 h-12 bg-gray-800 rounded overflow-hidden flex-shrink-0 border border-gray-700">
@@ -29,7 +35,9 @@
                                 </div>
 
                                 <div class="min-w-0">
-                                    <h3 class="font-bold text-lg text-gray-100 truncate">{{ $album['title'] }}</h3>
+                                    <h3 class="font-bold text-lg text-gray-100 truncate pr-2" title="{{ $album['title'] }}">
+                                        {{ $album['title'] }}
+                                    </h3>
                                     <p class="text-indigo-400 text-sm truncate">
                                         {{ $album['artist-credit'][0]['name'] ?? 'Artista Desconocido' }}
                                     </p>
@@ -51,10 +59,15 @@
 
                         </div>
                     @endforeach
+
+                    <div class="pt-4 border-t border-gray-800 mt-6 generic-pagination">
+                        {{ $albums->onEachSide(1)->links() }}
+                    </div>
+
                 </div>
             @else
                 <div class="text-center py-16 bg-gray-900 border border-gray-800 rounded-xl p-8">
-                    <p class="text-gray-500 italic text-lg">No pudimos conectar con el archivo histórico de MusicBrainz.</p>
+                    <p class="text-gray-500 italic text-lg">No pudimos cargar registros históricos para esta página.</p>
                 </div>
             @endif
 

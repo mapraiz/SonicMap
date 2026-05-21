@@ -22,47 +22,74 @@
                     </div>
                 </div>
 
-               <div x-data="{
+                {{-- 1. DATABASE LOOKUP: Grab the logged-in user's existing score --}}
+                @php
+                    $userReview = $localSong ? $localSong->reviews()->where('user_id', auth()->id())->first() : null;
+                    $userRating = $userReview ? $userReview->rating : 0;
+                @endphp
+
+                {{-- 2. ALPINE INITIALIZATION: Pass the user's score right into the initial state --}}
+                <div x-data="{
                     hoverRating: 0,
-                    currentRating: {{ $averageRating ?? 0 }},
-                    getDisplayRating() { return this.hoverRating || this.currentRating }
+                    rating: {{ $userRating }},
+                    getDisplayRating() { return this.hoverRating || this.rating }
                 }" class="flex flex-col items-center">
 
                     <p class="mb-4 font-bold text-gray-200">Tu Puntuación</p>
 
-                    <form id="ratingForm" action="{{ route('reviews.store') }}" method="POST" class="flex gap-1">
+                    <form id="ratingForm" action="{{ route('reviews.store') }}" method="POST" class="flex flex-col items-center gap-4">
                         @csrf
                         <input type="hidden" name="mbid" value="{{ $song['id'] }}">
-                        <input type="hidden" name="item_type" value="song">
-                        <input type="hidden" name="rating" :value="hoverRating || currentRating">
+                        <input type="hidden" name="title" value="{{ $song['title'] ?? 'Título no disponible' }}">
+                        <input type="hidden" name="artist_name" value="{{ $song['artist-credit'][0]['name'] ?? 'Artista Desconocido' }}">
+                        <input type="hidden" name="artist_mbid" value="{{ $song['artist-credit'][0]['artist']['id'] ?? '' }}">
 
-                        <template x-for="star in [1, 2, 3, 4, 5]">
-                            <div class="relative cursor-pointer text-4xl"
-                                @mousemove="
-                                    let rect = $el.getBoundingClientRect();
-                                    hoverRating = ( $event.clientX - rect.left < rect.width / 2 ) ? star - 0.5 : star;
-                                "
-                                @mouseleave="hoverRating = 0"
-                                @click="$nextTick(() => $el.closest('form').submit())">
+                        <input type="hidden" name="reviewable_type" value="song">
+                        <input type="hidden" name="rating" :value="rating">
 
-                                <span class="text-gray-700">★</span>
+                        <div class="flex items-center gap-1 relative select-none">
+                            <template x-for="i in [1, 2, 3, 4, 5]">
+                                <div class="relative w-9 h-9 flex items-center justify-center">
 
-                                <div class="absolute inset-0 overflow-hidden text-yellow-400"
-                                    :style="'width: ' + (getDisplayRating() >= star ? '100%' : (getDisplayRating() >= star - 0.5 ? '50%' : '0%'))">
-                                    ★
+                                    <svg class="absolute w-full h-full text-gray-700 fill-current" viewBox="0 0 24 24">
+                                        <path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.132 9.21l8.2-1.192z"/>
+                                    </svg>
+
+                                    <div class="absolute top-0 left-0 h-full overflow-hidden pointer-events-none transition-all duration-75"
+                                         :style="
+                                            let activeRating = getDisplayRating();
+                                            if (activeRating >= i) return 'width: 100%';
+                                            if (activeRating === i - 0.5) return 'width: 50%';
+                                            return 'width: 0%';
+                                         ">
+                                        <svg class="w-9 h-9 text-yellow-400 fill-current" viewBox="0 0 24 24">
+                                            <path d="M12 .587l3.668 7.431 8.2 1.192-5.934 5.787 1.4 8.168L12 18.896l-7.334 3.857 1.4-8.168L.132 9.21l8.2-1.192z"/>
+                                        </svg>
+                                    </div>
+
+                                    <div class="absolute top-0 left-0 w-1/2 h-full cursor-pointer z-10"
+                                         @mouseenter="hoverRating = i - 0.5"
+                                         @mouseleave="hoverRating = 0"
+                                         @click="rating = i - 0.5; $nextTick(() => $el.closest('form').submit())"></div>
+
+                                    <div class="absolute top-0 right-0 w-1/2 h-full cursor-pointer z-10"
+                                         @mouseenter="hoverRating = i"
+                                         @mouseleave="hoverRating = 0"
+                                         @click="rating = i; $nextTick(() => $el.closest('form').submit())"></div>
                                 </div>
-                            </div>
-                        </template>
+                            </template>
+                        </div>
                     </form>
 
-                    <p class="mt-2 text-sm text-gray-500" x-text="getDisplayRating() > 0 ? getDisplayRating() + ' / 5' : 'Selecciona una nota'"></p>
+                    {{-- Dynamic Score helper text badge --}}
+                    <p class="mt-4 text-sm font-bold text-indigo-400 font-mono bg-gray-950 px-2.5 py-1 rounded border border-gray-800"
+                       x-text="getDisplayRating() > 0 ? getDisplayRating().toFixed(1) + ' / 5' : 'Selecciona una nota'"></p>
                 </div>
 
                 @if(isset($song['releases'][0]))
                 <div class="mt-12 pt-8 border-t border-gray-700">
                     <p class="text-gray-500 text-sm mb-2">Aparece en el álbum:</p>
-                    <a href="{{ route('albums.show', $song['releases'][0]['id']) }}"
-                       class="text-white hover:text-indigo-400 font-bold transition">
+                    <p class="text-white  font-bold transition">
                         {{ $song['releases'][0]['title'] }}
                     </a>
                 </div>

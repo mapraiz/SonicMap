@@ -23,7 +23,6 @@ return new class extends Migration
             $table->foreignId('artist_id')->constrained()->onDelete('cascade');
             $table->string('title');
             $table->integer('release_year')->nullable(); // For filtering [cite: 59]
-            $table->string('genre')->nullable(); // For filtering [cite: 58]
             $table->timestamps();
         });
         Schema::create('songs', function (Blueprint $table) {
